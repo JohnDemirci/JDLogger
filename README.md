@@ -40,3 +40,6 @@ The logs are automatically written to a file in the document directory of the ph
 
 ## Installation
 Use https://github.com/JohnDemirci/JDLogger.git to add to your project by clicking `Add Package Dependencies` on XCode
+
+## Future wrok
+- Make the file reading more performant
