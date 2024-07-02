@@ -110,3 +110,8 @@ public class IdentifiableLogger: Identifiable {
     }
 }
 
+extension IdentifiableLogger: Equatable {
+    public static func == (lhs: IdentifiableLogger, rhs: IdentifiableLogger) -> Bool {
+        lhs.id == rhs.id
+    }
+}
