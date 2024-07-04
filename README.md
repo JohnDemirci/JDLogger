@@ -28,6 +28,29 @@ sturct SomeView: View {
 
 ## Features
 
+### Changing the Log File name
+```swift
+struct ContentView: View {
+    @Logger("View", "ContentView") private var logger
+
+    var body: some View {
+        Button("click") {
+            // action
+        }
+        .onAppear {
+            switch logger.changeTextFileName(to: "newName") {
+            case .success: break
+            case .failure:
+                // handle Errors
+                break
+            }
+        }
+    }
+}
+```
+
+Changing the file name is persistent within the app launches. However, if the user removes the app, the desired name needs to be added again otherwise "Logs.txt" will be the default file
+
 ### Reusability
 If you provide the same subsystem and category to the logger, the existing logger will be returned.
 
