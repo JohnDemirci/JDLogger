@@ -18,7 +18,7 @@ If you do not want to write to a file, you can opt out
 
 ```swift
 sturct SomeView: View {
-  @Logger("subsystem", "category", shouldLogToFile: false) private var logger
+  @Logger("subsystem", "category", .ignoreFile) private var logger
   var body: some View {
     EmptyView()
       .onAppear { logger.info("on appear") } 
