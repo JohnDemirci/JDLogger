@@ -6,19 +6,21 @@ final class JDLoggerTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        createLogFile()
         loggerManager = .shared
     }
 
     override func tearDown() {
         super.tearDown()
+        removeLogFile()
         loggerManager = nil
     }
 }
 
 extension JDLoggerTests {
     func testSameLoggerIsUsed() {
-        @Logger("one", "two", shouldLogToFile: false) var firstLogger
-        @Logger("one", "two", shouldLogToFile: false) var secondLogger
+        @Logger("one", "two", .ignoreFile) var firstLogger
+        @Logger("one", "two", .ignoreFile) var secondLogger
 
         XCTAssertEqual(loggerManager?.loggers.count, 1)
         XCTAssertEqual(firstLogger, secondLogger)
@@ -26,13 +28,23 @@ extension JDLoggerTests {
 
     func testDifferentObjectsCanHaveLoggers() {
         class LoggerTestObject {
-            @Logger("john", "demirci", shouldLogToFile: false) private var logger
+            @Logger("john", "demirci", .ignoreFile) private var logger
         }
 
-        @Logger("john", "sample", shouldLogToFile: false) var logger
-        let obj: LoggerTestObject? = LoggerTestObject()
+        @Logger("john", "sample", .ignoreFile) var logger
+        let _: LoggerTestObject? = LoggerTestObject()
 
         XCTAssertEqual(loggerManager?.loggers.count, 2)
+    }
+
+    func testLogFileCreated() {
+        @Logger("test", "newLogger") var logger
+
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let documentDirectory = paths[0]
+        let filePath = documentDirectory.appendingFormat("/" + "Logs.txt")
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: filePath))
     }
 
     /*
@@ -57,4 +69,21 @@ extension JDLoggerTests {
 //
 //        XCTAssertEqual(loggerManager?.loggers.count, 1)
 //    }
+}
+
+extension JDLoggerTests {
+    func removeLogFile() {
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let documentDirectory = paths[0]
+        let filePath = documentDirectory.appendingFormat("/" + "Logs.txt")
+
+        try? FileManager.default.removeItem(atPath: filePath)
+    }
+
+    func createLogFile() {
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let documentDirectory = paths[0]
+        let filePath = documentDirectory.appendingFormat("/" + "Logs.txt")
+        FileManager.default.createFile(atPath: filePath, contents: nil)
+    }
 }

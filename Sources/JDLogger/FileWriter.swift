@@ -8,32 +8,45 @@
 import Foundation
 
 final class FileLogWriter {
+    private static var filenameStorageKey: String {
+        ".JDLogger.com.filename_storageKey"
+    }
+
+    enum Failure: Error, CustomStringConvertible {
+        case message(String)
+
+        var description: String {
+            switch self {
+            case .message(let errorMessage):
+                return errorMessage
+            }
+        }
+    }
+
     private let queue = DispatchQueue(label: "com.john.demirci.filelogwriter", qos: .background)
     private let readerQueue = DispatchQueue(label: "com.john.demirci.filelogwriter.reader", qos: .background)
-
-    private let fileURL: URL
-    private let fileWriter: FileHandle
     private let fileManager: FileManager
+    private let lock = NSRecursiveLock()
 
-    let lock = NSRecursiveLock()
+    private(set) var fileName: String
+    private(set) var fileURL: URL
+    private(set) var fileWriter: FileHandle
 
     init() {
+        let name = UserDefaults.standard.string(forKey: Self.filenameStorageKey) ?? "Logs"
+
+        self.fileName = name
         self.fileManager = .default
 
-        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
-        let documentDirectory = paths[0]
-        let filePath = documentDirectory.appendingFormat("/" + "Logs.txt")
-
-        try? fileManager.removeItem(atPath: filePath)
-
-        fileManager.createFile(atPath: filePath, contents: nil)
+        let filePath = Self.getFilePath(name)
+        try? Self.createFile(name)
 
         self.fileWriter = FileHandle(forWritingAtPath: filePath)!
         self.fileURL = URL(filePath: filePath)
     }
 }
 
-extension FileLogWriter {
+extension FileLogWriter: LogWritable {
     func write(_ string: String) {
         queue.sync { [unowned self] in
             self.fileWriter.seekToEndOfFile()
@@ -45,8 +58,10 @@ extension FileLogWriter {
             self.fileWriter.write(data)
         }
     }
+}
 
-    func getLogs() throws -> String {
+extension FileLogWriter: LogRetrievable {
+    public func getLogs() throws -> String {
         // avoid abusing this function by adding a lock
         try lock.withLock {
             try readerQueue.sync {
@@ -57,4 +72,73 @@ extension FileLogWriter {
             }
         }
     }
+}
+
+extension FileLogWriter: FileModifiable {
+    public func changeFile(to name: String) throws {
+        // close file
+        try queue.sync { [weak self] in
+            guard let self else { throw Failure.message("self is nil") }
+            try self.fileWriter.close()
+        }
+
+        // create file
+        try queue.sync {
+            // remove old file
+            try FileManager.default.removeItem(atPath: Self.getFilePath(self.fileName))
+            try Self.createFile(name)
+        }
+
+        // update local variables
+        try queue.sync { [unowned self] in
+            let filePath = Self.getFilePath(name)
+
+            guard let newFileHandler = FileHandle(forWritingAtPath: filePath) else {
+                throw Failure.message("new file handler at the path \(filePath) is nil")
+            }
+
+            self.fileWriter = newFileHandler
+            self.fileURL = URL(filePath: filePath)
+            self.fileName = name
+        }
+
+        queue.sync {
+            UserDefaults.standard.setValue(name, forKey: Self.filenameStorageKey)
+        }
+    }
+}
+
+// MARK: - Helpers
+
+extension FileLogWriter {
+    static func getFilePath(_ name: String) -> String {
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let documentDirectory = paths[0]
+        let filePath = documentDirectory.appendingFormat("/" + "\(name).txt")
+        return filePath
+    }
+
+    // Creates a text file with the given name.
+    // Removes the pre-existing text file containing the same name if it exists
+    static func createFile(_ name: String) throws {
+        let filePath = Self.getFilePath(name)
+
+        if FileManager.default.fileExists(atPath: filePath) {
+            try FileManager.default.removeItem(atPath: filePath)
+        }
+
+        FileManager.default.createFile(atPath: filePath, contents: nil)
+    }
+}
+
+public protocol LogWritable: AnyObject {
+    func write(_ string: String)
+}
+
+public protocol LogRetrievable: AnyObject {
+    func getLogs() throws -> String
+}
+
+public protocol FileModifiable: AnyObject {
+    func changeFile(to name: String) throws
 }

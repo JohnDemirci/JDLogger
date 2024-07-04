@@ -17,12 +17,12 @@ public struct Logger {
     public init(
         _ subsystem: String,
         _ category: String,
-        shouldLogToFile: Bool = true
+        _ fileOperation: FileOperation = .write
     ) {
         self.wrappedValue = LoggerManager.shared.get(
             subsystem,
-            category: category,
-            shouldLogToFile: shouldLogToFile
+            category,
+            fileOperation: fileOperation
         )
     }
 }
