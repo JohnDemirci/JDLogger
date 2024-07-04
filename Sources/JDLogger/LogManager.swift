@@ -31,8 +31,8 @@ final class LoggerManager {
     // If the logger exists, it is returned, otherwise it is created.
     func get(
         _ subsystem: String,
-        category: String,
-        shouldLogToFile: Bool = true
+        _ category: String,
+        fileOperation: FileOperation
     ) -> IdentifiableLogger {
         queue.sync {
             let id = Identifier(subsystem, category)
@@ -44,18 +44,14 @@ final class LoggerManager {
             let logger = IdentifiableLogger(
                 subsystem: subsystem,
                 category: category,
-                delegate: shouldLogToFile ? self : nil
+                logWriter: fileOperation == .write ? fileWriter : nil,
+                logRetriever: fileWriter,
+                fileModifier: fileWriter
             )
 
             self.registerLogger(logger)
             return logger
         }
-    }
-}
-
-extension LoggerManager: IdentifiableLoggerDelegate {
-    func didLog(_ string: String) {
-        fileWriter.write(string)
     }
 
     func getLogs() throws -> String {
@@ -63,7 +59,3 @@ extension LoggerManager: IdentifiableLoggerDelegate {
     }
 }
 
-public protocol IdentifiableLoggerDelegate: AnyObject {
-    func didLog(_ string: String)
-    func getLogs() throws -> String
-}

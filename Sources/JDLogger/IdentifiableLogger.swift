@@ -8,19 +8,37 @@
 import OSLog
 
 public class IdentifiableLogger: Identifiable {
+    public enum Failure: Error, CustomStringConvertible {
+        case message(String)
+
+        public var description: String {
+            guard case .message(let string) = self else {
+                return ""
+            }
+
+            return string
+        }
+    }
+
     public let id: Identifier<IdentifiableLogger>
     private let logger: os.Logger
 
-    private weak var delegate: IdentifiableLoggerDelegate?
+    private weak var logWriter: LogWritable?
+    private weak var logRetriever: LogRetrievable?
+    private weak var fileModifier: FileModifiable?
 
-    public init(
+    init(
         subsystem: String,
         category: String,
-        delegate: IdentifiableLoggerDelegate? = nil
+        logWriter: LogWritable? = nil,
+        logRetriever: LogRetrievable,
+        fileModifier: FileModifiable
     ) {
-        id = Identifier("\(subsystem).\(category)")
-        logger = os.Logger(subsystem: subsystem, category: category)
-        self.delegate = delegate
+        self.id = Identifier(subsystem, category)
+        self.logger = os.Logger(subsystem: subsystem, category: category)
+        self.logWriter = logWriter
+        self.logRetriever = logRetriever
+        self.fileModifier = fileModifier
     }
 
     /// Logs the Message as well as the file, function, and line where it was called from.
@@ -37,10 +55,16 @@ public class IdentifiableLogger: Identifiable {
         function: String = #function,
         line: Int = #line
     ) {
-        let printable = "[\(Date())] [INFO] [\((file as NSString).lastPathComponent)] [\(function)] [\(line)] message:\n\(message())\n"
+        let logMessage = logFormattedMessage(
+            message(),
+            severity: .info,
+            file: file,
+            function: function,
+            line: line
+        )
 
-        logger.info("\(printable)")
-        delegate?.didLog(printable)
+        logger.info("\(logMessage)")
+        logWriter?.write(logMessage)
     }
 
     /// Logs the message as well as the file function and line this function was called from.
@@ -59,8 +83,14 @@ public class IdentifiableLogger: Identifiable {
         line: Int = #line
     ) {
         #if DEBUG
-        let printable = "[\(Date())] [DEBUG] [\((file as NSString).lastPathComponent)] [\(function)] [\(line)] message:\n\(message())\n"
-        logger.debug("\(printable)")
+        let logMessage = logFormattedMessage(
+            message(),
+            severity: .debug,
+            file: file,
+            function: function,
+            line: line
+        )
+        logger.debug("\(logMessage)")
         #endif
     }
 
@@ -90,23 +120,87 @@ public class IdentifiableLogger: Identifiable {
             _message.append("\n\(error.localizedDescription)")
         }
 
-        let printable = "[\(Date())] [ERROR] [\((file as NSString).lastPathComponent)] [\(function)] [\(line)] message:\n\(_message)\n"
+        let logMessage = logFormattedMessage(
+            _message,
+            severity: .error,
+            file: file,
+            function: function,
+            line: line
+        )
 
-        logger.error("\(printable)")
-        delegate?.didLog(printable)
+        logger.error("\(logMessage)")
+        logWriter?.write(logMessage)
 
         if shouldRaiseAssertionFailure {
             assertionFailure(_message)
         }
     }
 
+    /// Logs the Message as well as the file, function, and line where it was called from.
+    /// If logToFile is enabled, it writes to the file.
+    ///
+    /// - Parameters:
+    ///   - messagge: An autoclosure that returns ``String``.
+    ///   - file:the filename. Default value is set to `#file`
+    ///   - function: the function name. Default value is set to `#function`
+    ///   - line: the line number. Default value is set to `#line`
+    public func warning(
+        _ message: @autoclosure () -> String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let logMessage = logFormattedMessage(
+            message(),
+            severity: .warning,
+            file: file,
+            function: function,
+            line: line
+        )
+
+        logger.info("\(logMessage)")
+        logWriter?.write(logMessage)
+    }
+
     /// Reads the logs from the file.
+    public func getLogs() -> Result<String, Error> {
+        guard let logRetriever else {
+            return .failure(Failure.message("log retriever is nil"))
+        }
+
+        do {
+            return .success(try logRetriever.getLogs())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    /// Changes the name of the file in the Document directory.
     ///
-    /// - Returns: An optional String
-    ///
-    /// - Note: If writingToFile flag is not enabled, then this operation returns nil.
-    public func getLogs() -> String? {
-        try? delegate?.getLogs()
+    /// - Important: Any logs saved in the previous file will be removed.
+    public func changeTextFileName(to name: String) -> Result<Void, Error> {
+        guard let fileModifier else {
+            return .failure(Failure.message("file modifier is nil"))
+        }
+
+        do {
+            try fileModifier.changeFile(to: name)
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+}
+
+extension IdentifiableLogger {
+    func logFormattedMessage(
+        _ message: @autoclosure () -> String,
+        severity: LogSeverity,
+        file: String,
+        function: String,
+        line: Int
+    ) -> String {
+        "[\(Date())] [\(severity.rawValue)] [\((file as NSString).lastPathComponent)] [\(function)] [\(line)] message:\n\(message())\n"
     }
 }
 
