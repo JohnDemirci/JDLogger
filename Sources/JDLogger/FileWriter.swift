@@ -8,7 +8,7 @@
 import Foundation
 
 final class FileLogWriter {
-    private static var filenameStorageKey: String {
+    static var filenameStorageKey: String {
         ".JDLogger.com.filename_storageKey"
     }
 
@@ -76,6 +76,14 @@ extension FileLogWriter: LogRetrievable {
 
 extension FileLogWriter: FileModifiable {
     public func changeFile(to name: String) throws {
+        guard name != self.fileName else {
+            throw Failure.message("Cannot rename the file to the existing name")
+        }
+
+        guard !name.isEmpty else {
+            throw Failure.message("filename must contain letters")
+        }
+
         // close file
         try queue.sync { [weak self] in
             guard let self else { throw Failure.message("self is nil") }

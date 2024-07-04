@@ -12,8 +12,7 @@ final class LoggerManager {
      Both the key and the logger are weakly held objects. Once they are no longer in use,
      they are automatically removed.
      */
-    var loggers: NSMapTable<Identifier<IdentifiableLogger>, IdentifiableLogger>
-
+    private var loggers: NSMapTable<Identifier<IdentifiableLogger>, IdentifiableLogger>
     private let queue = DispatchQueue(label: "com.jd.logger.queue")
     private let fileWriter = FileLogWriter()
 
@@ -52,10 +51,6 @@ final class LoggerManager {
             self.registerLogger(logger)
             return logger
         }
-    }
-
-    func getLogs() throws -> String {
-        try fileWriter.getLogs()
     }
 }
 
