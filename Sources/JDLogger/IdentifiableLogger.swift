@@ -7,6 +7,9 @@
 
 import OSLog
 
+/// Main Logger used by the ``Logger`` propertyWrapper.
+///
+/// - Important: Create an ``IdentifiableLogger`` using the ``Logger`` propertyWrapper
 public class IdentifiableLogger: Identifiable {
     public enum Failure: Error, CustomStringConvertible {
         case message(String)
@@ -45,7 +48,7 @@ public class IdentifiableLogger: Identifiable {
     /// If logToFile is enabled, it writes to the file.
     ///
     /// - Parameters:
-    ///   - messagge: An autoclosure that returns ``String``.
+    ///   - message: An autoclosure that returns `String`.
     ///   - file:the filename. Default value is set to `#file`
     ///   - function: the function name. Default value is set to `#function`
     ///   - line: the line number. Default value is set to `#line`
@@ -72,7 +75,7 @@ public class IdentifiableLogger: Identifiable {
     /// - Important: This function does nothing outside of `DEBUG` builds
     ///
     /// - Parameters:
-    ///    - messagge: An autoclosure that returns ``String``.
+    ///    - message: An autoclosure that returns `String`.
     ///    - file:the filename. Default value is set to `#file`
     ///    - function: the function name. Default value is set to `#function`
     ///    - line: the line number. Default value is set to `#line`
@@ -100,9 +103,9 @@ public class IdentifiableLogger: Identifiable {
     /// - Important: The assertion failure won't be raised in RELEASE builds
     ///
     /// - Parameters:
-    ///    - messagge: An autoclosure that returns ``String``.
+    ///    - message: An autoclosure that returns `String`.
     ///    - error: the received error. It is used to construct a bigger log message to displauy the debugDescription. Default value is nil
-    ///    - shouldRaiseAssertionFailure: A ``Bool`` flag that will raise assertion failure. This does nothing outside of DEBUG builds.
+    ///    - shouldRaiseAssertionFailure: A `Bool` flag that will raise assertion failure. This does nothing outside of DEBUG builds.
     ///    - file:the filename. Default value is set to `#file`
     ///    - function: the function name. Default value is set to `#function`
     ///    - line: the line number. Default value is set to `#line`
@@ -140,7 +143,7 @@ public class IdentifiableLogger: Identifiable {
     /// If logToFile is enabled, it writes to the file.
     ///
     /// - Parameters:
-    ///   - messagge: An autoclosure that returns ``String``.
+    ///   - message: An autoclosure that returns `String`.
     ///   - file:the filename. Default value is set to `#file`
     ///   - function: the function name. Default value is set to `#function`
     ///   - line: the line number. Default value is set to `#line`
@@ -163,6 +166,8 @@ public class IdentifiableLogger: Identifiable {
     }
 
     /// Reads the logs from the file.
+    ///
+    /// - Returns: A Result. Fails when logRetriever is nil, or when the content cannot be decoded to a string.
     public func getLogs() -> Result<String, Error> {
         guard let logRetriever else {
             return .failure(Failure.message("log retriever is nil"))

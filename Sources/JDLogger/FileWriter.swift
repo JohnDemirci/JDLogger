@@ -139,14 +139,17 @@ extension FileLogWriter {
     }
 }
 
+/// Protocol conformed by the FileLogWriter class to write to a file
 public protocol LogWritable: AnyObject {
     func write(_ string: String)
 }
 
+/// Protocol conformed by the FileLogWriter class to retrieve the logs from the file
 public protocol LogRetrievable: AnyObject {
     func getLogs() throws -> String
 }
 
+/// Protocol conformed by the FileLogWriter class to change the file name.
 public protocol FileModifiable: AnyObject {
     func changeFile(to name: String) throws
 }

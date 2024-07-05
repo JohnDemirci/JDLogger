@@ -8,6 +8,20 @@
 import Foundation
 
 /// Used as a unique Identifier. This is an object and used for automatically de-referencing when the logger is no longer in use.
+///
+/// - Note: Identifier is used as a reference type ID.
+/// - Important: This object is created to provide a reference type identifier for reference type objects.
+///
+/// # Usage
+/// ```swift
+/// class SomeObject {
+///     let id: Identifier<SomeObject>
+///
+///     init(_ id: String) {
+///         self.id = Identifier<SomeObject>(id)
+///     }
+/// }
+/// ```
 public class Identifier<T: AnyObject>: Identifiable, Equatable {
     public static func == (lhs: Identifier<T>, rhs: Identifier<T>) -> Bool {
         lhs.id == rhs.id
