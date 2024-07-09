@@ -51,6 +51,43 @@ struct ContentView: View {
 
 Changing the file name is persistent within the app launches. However, if the user removes the app, the desired name needs to be added again otherwise "Logs.txt" will be the default file
 
+### Enable/Disable Loggers
+If you wish to enable or disable certain loggers you can do either individually or using the provided API to make handle in batch.
+
+```swift
+struct SomeView: View {
+    @Logger("one", "two") private var logger
+    var body: some View {
+        EmptyView()
+            .onAppear {
+                logger.disable()
+                logger.enable()
+                // logger.isDisabled -> Check if the current logger is disabled
+            }
+    }
+}
+```
+
+you can also make a batch request using a configuration 
+
+```swift
+struct SomeView: View {
+    private let configurator = LoggerConfigurator()
+    var body: some View {
+        EmptyView()
+            .onAppear {
+                configurator.disableLoggers( /* array of identifiers for the logger */ )
+            }
+    }
+}
+```
+
+if you wish to enable the disabled loggers
+
+```swift
+public func enableDisabledLoggers()
+```
+
 ### Reusability
 If you provide the same subsystem and category to the logger, the existing logger will be returned.
 
