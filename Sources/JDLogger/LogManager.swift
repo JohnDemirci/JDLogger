@@ -56,18 +56,22 @@ final class LoggerManager {
 
 extension LoggerManager {
     func disableLoggers(_ identifierBuikders: [IdentifiableLoggerIDBuilder]) {
-        let loggers = identifierBuikders.compactMap {
-            self.loggers.object(forKey: $0.identifier)
-        }
+        queue.sync {
+            let loggers = identifierBuikders.compactMap {
+                self.loggers.object(forKey: $0.identifier)
+            }
 
-        loggers.forEach { $0.disable() }
+            loggers.forEach { $0.disable() }
+        }
     }
 
     func disableLoggers(_ ids: [Identifier<IdentifiableLogger>]) {
-        let loggers = ids.compactMap {
-            self.loggers.object(forKey: $0)
-        }
+        queue.sync {
+            let loggers = ids.compactMap {
+                self.loggers.object(forKey: $0)
+            }
 
-        loggers.forEach { $0.disable() }
+            loggers.forEach { $0.disable() }
+        }
     }
 }
