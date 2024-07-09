@@ -12,7 +12,7 @@ final class LoggerManager {
      Both the key and the logger are weakly held objects. Once they are no longer in use,
      they are automatically removed.
      */
-    private var loggers: NSMapTable<Identifier<IdentifiableLogger>, IdentifiableLogger>
+    internal private(set) var loggers: NSMapTable<Identifier<IdentifiableLogger>, IdentifiableLogger>
     private let queue = DispatchQueue(label: "com.jd.logger.queue")
     private let fileWriter = FileLogWriter()
 
@@ -54,3 +54,20 @@ final class LoggerManager {
     }
 }
 
+extension LoggerManager {
+    func disableLoggers(_ identifierBuikders: [IdentifiableLoggerIDBuilder]) {
+        let loggers = identifierBuikders.compactMap {
+            self.loggers.object(forKey: $0.identifier)
+        }
+
+        loggers.forEach { $0.disable() }
+    }
+
+    func disableLoggers(_ ids: [Identifier<IdentifiableLogger>]) {
+        let loggers = ids.compactMap {
+            self.loggers.object(forKey: $0)
+        }
+
+        loggers.forEach { $0.disable() }
+    }
+}

@@ -15,15 +15,14 @@ public class IdentifiableLogger: Identifiable {
         case message(String)
 
         public var description: String {
-            guard case .message(let string) = self else {
-                return ""
-            }
-
+            guard case .message(let string) = self else { return ""}
             return string
         }
     }
 
     public let id: Identifier<IdentifiableLogger>
+    public internal(set) var isDisabled: Bool = false
+
     private let logger: os.Logger
 
     private weak var logWriter: LogWritable?
@@ -58,6 +57,7 @@ public class IdentifiableLogger: Identifiable {
         function: String = #function,
         line: Int = #line
     ) {
+        guard !isDisabled else { return }
         let logMessage = logFormattedMessage(
             message(),
             severity: .info,
@@ -86,6 +86,7 @@ public class IdentifiableLogger: Identifiable {
         line: Int = #line
     ) {
         #if DEBUG
+        guard !isDisabled else { return }
         let logMessage = logFormattedMessage(
             message(),
             severity: .debug,
@@ -117,6 +118,7 @@ public class IdentifiableLogger: Identifiable {
         function: String = #function,
         line: Int = #line
     ) {
+        guard !isDisabled else { return }
         var _message = message()
 
         if let error {
@@ -153,6 +155,7 @@ public class IdentifiableLogger: Identifiable {
         function: String = #function,
         line: Int = #line
     ) {
+        guard !isDisabled else { return }
         let logMessage = logFormattedMessage(
             message(),
             severity: .warning,
@@ -195,6 +198,14 @@ public class IdentifiableLogger: Identifiable {
             return .failure(error)
         }
     }
+
+    public func enable() {
+        self.isDisabled = false
+    }
+
+    public func disable() {
+        self.isDisabled = true
+    }
 }
 
 extension IdentifiableLogger {
@@ -209,8 +220,12 @@ extension IdentifiableLogger {
     }
 }
 
-extension IdentifiableLogger: Equatable {
+extension IdentifiableLogger: Hashable {
     public static func == (lhs: IdentifiableLogger, rhs: IdentifiableLogger) -> Bool {
         lhs.id == rhs.id
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
     }
 }
