@@ -45,6 +45,7 @@ extension IdentifiableLoggerTests {
         )
 
         XCTAssertEqual(logger.id.id, "\(subsystem).\(category)")
+        XCTAssertFalse(logger.isDisabled)
     }
 }
 
@@ -139,6 +140,42 @@ extension IdentifiableLoggerTests {
         case .failure:
             break
         }
+    }
+}
+
+// MARK: - Enability & Disability Tests
+
+extension IdentifiableLoggerTests {
+    func testEnable() {
+        logger.disable()
+        XCTAssertTrue(logger.isDisabled)
+
+        logger.enable()
+        XCTAssertFalse(logger.isDisabled)
+    }
+
+    func testDisable() {
+        XCTAssertFalse(logger.isDisabled)
+        logger.disable()
+        XCTAssertTrue(logger.isDisabled)
+    }
+
+    func testDisabledLoggerDoesNotWriteToFileInfo() {
+        logger.disable()
+        logger.info("some message")
+        XCTAssertFalse(mockFileWriter.didCallWrite)
+    }
+
+    func testDisabledLoggerDoesNotWriteToFileError() {
+        logger.disable()
+        logger.error("error message")
+        XCTAssertFalse(mockFileWriter.didCallWrite)
+    }
+
+    func testDisabledLoggerDoesNotWriteToFileWarning() {
+        logger.disable()
+        logger.warning("warning message")
+        XCTAssertFalse(mockFileWriter.didCallWrite)
     }
 }
 

@@ -22,7 +22,11 @@ import Foundation
 ///     }
 /// }
 /// ```
-public class Identifier<T: AnyObject>: Identifiable, Equatable {
+public class Identifier<T: AnyObject>: Identifiable, Hashable, NSCopying {
+    public func copy(with zone: NSZone? = nil) -> Any {
+        return Identifier<T>(self.id)
+    }
+
     public static func == (lhs: Identifier<T>, rhs: Identifier<T>) -> Bool {
         lhs.id == rhs.id
     }
@@ -31,6 +35,11 @@ public class Identifier<T: AnyObject>: Identifiable, Equatable {
 
     init(_ id: String) {
         self.id = id
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine("\(T.self)")
     }
 }
 
