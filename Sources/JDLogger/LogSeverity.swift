@@ -7,7 +7,7 @@
 
 enum LogSeverity: String {
     case debug = "DEBUG ⚙️"
-    case info = "INFO [🔎]"
+    case info = "INFO 🔎"
     case warning = "WARNING ⚠️"
     case error = "ERROR ⛔️"
 }

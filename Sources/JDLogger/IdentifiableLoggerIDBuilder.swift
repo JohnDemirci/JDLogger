@@ -11,6 +11,7 @@ public struct IdentifiableLoggerIDBuilder {
     public let subsystem: String
     public let category: String
 
+    /// Helper to build Logger Identifier to be used in batches
     public init(subsystem: String, category: String) {
         self.subsystem = subsystem
         self.category = category

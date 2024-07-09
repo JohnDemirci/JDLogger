@@ -199,10 +199,16 @@ public class IdentifiableLogger: Identifiable {
         }
     }
 
+    /// Enabled the logger
+    ///
+    /// - Note: If the logger is already enabled, does nothing
     public func enable() {
         self.isDisabled = false
     }
 
+    /// Disables the current logger.
+    ///
+    /// - Note: If the logger is disabled, does nothing
     public func disable() {
         self.isDisabled = true
     }
