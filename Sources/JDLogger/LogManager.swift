@@ -5,7 +5,7 @@ import Foundation
 import OSLog
 import SwiftUI
 
-final class LoggerManager {
+final class LoggerManager: @unchecked Sendable {
     /*
      Contains a dictionary of loggers using their identifiers as key.
 

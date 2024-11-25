@@ -10,7 +10,7 @@ import OSLog
 /// Main Logger used by the ``Logger`` propertyWrapper.
 ///
 /// - Important: Create an ``IdentifiableLogger`` using the ``Logger`` propertyWrapper
-public class IdentifiableLogger: Identifiable {
+final public class IdentifiableLogger: Identifiable, @unchecked Sendable {
     public enum Failure: Error, CustomStringConvertible {
         case message(String)
 
@@ -51,15 +51,16 @@ public class IdentifiableLogger: Identifiable {
     ///   - file:the filename. Default value is set to `#file`
     ///   - function: the function name. Default value is set to `#function`
     ///   - line: the line number. Default value is set to `#line`
+    @Sendable
     public func info(
-        _ message: @autoclosure () -> String,
+        _ message: String,
         file: String = #file,
         function: String = #function,
         line: Int = #line
     ) {
         guard !isDisabled else { return }
         let logMessage = logFormattedMessage(
-            message(),
+            message,
             severity: .info,
             file: file,
             function: function,
@@ -79,8 +80,9 @@ public class IdentifiableLogger: Identifiable {
     ///    - file:the filename. Default value is set to `#file`
     ///    - function: the function name. Default value is set to `#function`
     ///    - line: the line number. Default value is set to `#line`
+    @Sendable
     public func debug(
-        _ message: @autoclosure () -> String,
+        _ message: String,
         file: String = #file,
         function: String = #function,
         line: Int = #line
@@ -88,7 +90,7 @@ public class IdentifiableLogger: Identifiable {
         #if DEBUG
         guard !isDisabled else { return }
         let logMessage = logFormattedMessage(
-            message(),
+            message,
             severity: .debug,
             file: file,
             function: function,
@@ -110,8 +112,9 @@ public class IdentifiableLogger: Identifiable {
     ///    - file:the filename. Default value is set to `#file`
     ///    - function: the function name. Default value is set to `#function`
     ///    - line: the line number. Default value is set to `#line`
+    @Sendable
     public func error(
-        _ message: @autoclosure () -> String,
+        _ message: String,
         error: Error? = nil,
         shouldRaiseAssertionFailure: Bool = false,
         file: String = #file,
@@ -119,7 +122,7 @@ public class IdentifiableLogger: Identifiable {
         line: Int = #line
     ) {
         guard !isDisabled else { return }
-        var _message = message()
+        var _message = message
 
         if let error {
             _message.append("\n\(error.localizedDescription)")
@@ -149,15 +152,16 @@ public class IdentifiableLogger: Identifiable {
     ///   - file:the filename. Default value is set to `#file`
     ///   - function: the function name. Default value is set to `#function`
     ///   - line: the line number. Default value is set to `#line`
+    @Sendable
     public func warning(
-        _ message: @autoclosure () -> String,
+        _ message: String,
         file: String = #file,
         function: String = #function,
         line: Int = #line
     ) {
         guard !isDisabled else { return }
         let logMessage = logFormattedMessage(
-            message(),
+            message,
             severity: .warning,
             file: file,
             function: function,

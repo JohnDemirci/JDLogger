@@ -22,7 +22,7 @@ import Foundation
 ///     }
 /// }
 /// ```
-public class Identifier<T: AnyObject>: Identifiable, Hashable, NSCopying {
+final public class Identifier<T: AnyObject>: Identifiable, Hashable, NSCopying, Sendable {
     public func copy(with zone: NSZone? = nil) -> Any {
         return Identifier<T>(self.id)
     }
